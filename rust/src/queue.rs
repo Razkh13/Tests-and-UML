@@ -50,4 +50,25 @@ mod tests {
         q.pop();
         assert!(!q.find("1"));
     }
+    #[test]
+    fn test_queue_full() {
+        let mut q = Queue::new();
+        assert_eq!(q.pop(), None); 
+        q.push("1".to_string());
+        q.push("2".to_string());
+        q.print();
+        q.save_text("tmp_q.txt");
+        let loaded = Queue::load_text("tmp_q.txt");
+        assert!(loaded.find("1"));
+        std::fs::remove_file("tmp_q.txt").unwrap();
+    }
+
+    #[test]
+    fn test_queue_container_trait() {
+        let q = Queue::new();
+        let _any_ref = q.as_any();
+        
+        let mut q_mut = Queue::new();
+        let _any_mut_ref = q_mut.as_any_mut();
+    }
 }

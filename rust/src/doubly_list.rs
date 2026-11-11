@@ -268,6 +268,7 @@ impl Container for DoublyList {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn test_push_and_pop() {
         let mut dl = DoublyList::new();
@@ -278,4 +279,39 @@ mod tests {
         dl.pop_tail();
         assert!(!dl.find("B"));
     }
+
+    #[test]
+    fn test_doubly_list_full() {
+        let mut d = DoublyList::new();
+        assert_eq!(d.pop_value("none"), None);
+        d.push("A".to_string());
+        d.push_tail("C".to_string());
+        d.push_before("C", "B".to_string());
+        d.push_after("A", "A2".to_string());
+        d.print();
+        d.print_reverse();
+        d.print_every_second();
+        d.pop();
+        d.pop_tail();
+        d.save_text("tmp_dl.txt");
+        let _loaded = DoublyList::load_text("tmp_dl.txt");
+        std::fs::remove_file("tmp_dl.txt").unwrap();
+    }
+
+        #[test]
+    fn test_pop_methods() {
+        let mut d = DoublyList::new();
+
+        d.push_tail("A".to_string());
+        d.push_tail("B".to_string());
+        d.push_tail("C".to_string());
+
+        d.pop_before("B");
+        d.pop_after("B");
+
+        d.push_tail("D".to_string());
+        d.pop_before("D");
+        d.pop_after("D");
+    }
+    
 }

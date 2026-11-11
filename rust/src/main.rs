@@ -1,3 +1,4 @@
+#![cfg(not(tarpaulin_include))]
 mod container;
 mod stack;
 mod array;

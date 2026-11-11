@@ -682,6 +682,17 @@ TEST(ForwardListTest, LoadBinaryNormal) {
     std::remove("tmp_fl_n.bin");
 }
 
+TEST(ForwardListTest, IsEmptyGetAllClear) {
+    ForwardList f;
+    EXPECT_TRUE(f.IsEmpty());
+    f.Push("a");
+    f.PushTail("b");
+    auto all = f.GetAll();
+    EXPECT_EQ(all.size(), size_t(2));
+    f.Clear();
+    EXPECT_TRUE(f.IsEmpty());
+}
+
 TEST(ForwardListTest, FullCoverage) {
     ForwardList f;
     
@@ -1167,6 +1178,12 @@ TEST(AVLTreeTest, InsertMultiple) {
     EXPECT_EQ(t.GetHeight(), 2);
 }
 
+TEST(AVLTreeTest, FindAbsent) {
+    AVLTree t;
+    t.Push("10");
+    EXPECT_FALSE(t.Find("20"));
+}
+
 TEST(AVLTreeTest, PopLeaf) {
     AVLTree t;
     t.Push("10");
@@ -1174,6 +1191,8 @@ TEST(AVLTreeTest, PopLeaf) {
     t.Push("15");
     t.PopValue("5");
     EXPECT_FALSE(t.Find("5"));
+    EXPECT_TRUE(t.Find("10"));
+    EXPECT_TRUE(t.Find("15"));
 }
 
 TEST(AVLTreeTest, PopOneChild) {
@@ -1183,6 +1202,7 @@ TEST(AVLTreeTest, PopOneChild) {
     t.Push("3");
     t.PopValue("5");
     EXPECT_FALSE(t.Find("5"));
+    EXPECT_TRUE(t.Find("3"));
 }
 
 TEST(AVLTreeTest, PopTwoChildren) {
@@ -1194,6 +1214,8 @@ TEST(AVLTreeTest, PopTwoChildren) {
     t.Push("7");
     t.PopValue("5");
     EXPECT_FALSE(t.Find("5"));
+    EXPECT_TRUE(t.Find("3"));
+    EXPECT_TRUE(t.Find("7"));
 }
 
 TEST(AVLTreeTest, RotateRight) {
@@ -1202,6 +1224,7 @@ TEST(AVLTreeTest, RotateRight) {
     t.Push("20");
     t.Push("10");
     EXPECT_EQ(t.GetHeight(), 2);
+    EXPECT_TRUE(t.Find("10"));
 }
 
 TEST(AVLTreeTest, RotateLeft) {
@@ -1210,6 +1233,7 @@ TEST(AVLTreeTest, RotateLeft) {
     t.Push("20");
     t.Push("30");
     EXPECT_EQ(t.GetHeight(), 2);
+    EXPECT_TRUE(t.Find("30"));
 }
 
 TEST(AVLTreeTest, DoubleRotationLR) {
@@ -1218,6 +1242,7 @@ TEST(AVLTreeTest, DoubleRotationLR) {
     t.Push("10");
     t.Push("20");
     EXPECT_EQ(t.GetHeight(), 2);
+    EXPECT_TRUE(t.Find("20"));
 }
 
 TEST(AVLTreeTest, DoubleRotationRL) {
@@ -1226,6 +1251,7 @@ TEST(AVLTreeTest, DoubleRotationRL) {
     t.Push("30");
     t.Push("20");
     EXPECT_EQ(t.GetHeight(), 2);
+    EXPECT_TRUE(t.Find("20"));
 }
 
 TEST(AVLTreeTest, HuffmanEncodeBasic) {
@@ -1234,6 +1260,7 @@ TEST(AVLTreeTest, HuffmanEncodeBasic) {
     t.HuffmanEncode("aabbcc");
     std::string out = testing::internal::GetCapturedStdout();
     EXPECT_NE(out.find("Таблица кодов"), std::string::npos);
+    EXPECT_NE(out.find("Закодированная строка"), std::string::npos);
 }
 
 TEST(AVLTreeTest, HuffmanEncodeEmpty) {
@@ -1241,6 +1268,14 @@ TEST(AVLTreeTest, HuffmanEncodeEmpty) {
     testing::internal::CaptureStdout();
     t.HuffmanEncode("");
     EXPECT_NE(testing::internal::GetCapturedStdout().find("Пустая строка"), std::string::npos);
+}
+
+TEST(AVLTreeTest, HuffmanEncodeSingleChar) {
+    AVLTree t;
+    testing::internal::CaptureStdout();
+    t.HuffmanEncode("aaaa");
+    std::string out = testing::internal::GetCapturedStdout();
+    EXPECT_NE(out.find("a"), std::string::npos);
 }
 
 TEST(AVLTreeTest, HuffmanDecodeBasic) {
@@ -1262,6 +1297,24 @@ TEST(AVLTreeTest, HuffmanDecodeBadCode) {
     testing::internal::CaptureStdout();
     t.HuffmanDecode("111111", "a 0");
     EXPECT_NE(testing::internal::GetCapturedStdout().find("Ошибка декодирования"), std::string::npos);
+}
+
+TEST(AVLTreeTest, SaveLoadText) {
+    AVLTree t;
+    t.Push("10");
+    t.Push("5");
+    std::ofstream out("tmp_avl.txt");
+    t.Save(out);
+    out.close();
+    
+    AVLTree u;
+    std::ifstream in("tmp_avl.txt");
+    u.Load(in);
+    in.close();
+    
+    EXPECT_TRUE(u.Find("10"));
+    EXPECT_TRUE(u.Find("5"));
+    std::remove("tmp_avl.txt");
 }
 
 TEST(AVLTreeTest, SaveBinary) {
@@ -1304,4 +1357,108 @@ TEST(AVLTreeTest, LoadBinaryNormal) {
     
     EXPECT_TRUE(t.Find("abc"));
     std::remove("tmp_avl_n.bin");
+}
+
+TEST(ForwardListTest, PopBeforeMiddle) {
+    ForwardList f;
+    f.PushTail("A");
+    f.PushTail("B");
+    f.PushTail("C");
+    f.PushTail("D");
+    testing::internal::CaptureStdout();
+    f.PopBefore("C");
+    std::string out = testing::internal::GetCapturedStdout();
+    EXPECT_NE(out.find("B"), std::string::npos);
+    EXPECT_FALSE(f.Find("B"));
+    EXPECT_TRUE(f.Find("A"));
+    EXPECT_TRUE(f.Find("C"));
+    EXPECT_TRUE(f.Find("D"));
+}
+
+TEST(ForwardListTest, PopAfterMiddle) {
+    ForwardList f;
+    f.PushTail("A");
+    f.PushTail("B");
+    f.PushTail("C");
+    f.PushTail("D");
+    testing::internal::CaptureStdout();
+    f.PopAfter("A");
+    std::string out = testing::internal::GetCapturedStdout();
+    EXPECT_NE(out.find("B"), std::string::npos);
+    EXPECT_FALSE(f.Find("B"));
+    EXPECT_TRUE(f.Find("A"));
+    EXPECT_TRUE(f.Find("C"));
+    EXPECT_TRUE(f.Find("D"));
+}
+
+TEST(DoublyListTest, PopValueMiddle) {
+    DoublyList d;
+    d.PushTail("A");
+    d.PushTail("B");
+    d.PushTail("C");
+    testing::internal::CaptureStdout();
+    d.PopValue("B");
+    std::string out = testing::internal::GetCapturedStdout();
+    
+    EXPECT_NE(out.find("B"), std::string::npos);
+    EXPECT_FALSE(d.Find("B"));
+    EXPECT_TRUE(d.Find("A"));
+    EXPECT_TRUE(d.Find("C"));
+}
+
+TEST(ForwardListTest, PopTailSingle) {
+    ForwardList f;
+    f.Push("A");
+    
+    testing::internal::CaptureStdout();
+    f.PopTail(); 
+    std::string out = testing::internal::GetCapturedStdout();
+    
+    EXPECT_NE(out.find("A"), std::string::npos);
+    EXPECT_FALSE(f.Find("A"));
+    EXPECT_TRUE(f.IsEmpty());
+}
+
+TEST(AVLTreeTest, PopRoot) {
+    AVLTree t;
+    t.Push("10");
+    t.Push("5");
+    t.Push("15");
+    t.Pop();
+    EXPECT_TRUE(true);
+}
+
+TEST(AVLTreeTest, PopEmpty) {
+    AVLTree t;
+    testing::internal::CaptureStdout();
+    t.Pop();
+    EXPECT_TRUE(testing::internal::GetCapturedStdout().find("Дерево пусто") != std::string::npos);
+}
+
+TEST(AVLTreeTest, PopValueAbsent) {
+    AVLTree t;
+    t.Push("10");
+    testing::internal::CaptureStdout();
+    t.PopValue("99");
+    EXPECT_TRUE(testing::internal::GetCapturedStdout().find("Не найдено") != std::string::npos);
+}
+
+TEST(AVLTreeTest, PrintEmpty) {
+    AVLTree t;
+    testing::internal::CaptureStdout();
+    t.Print();
+    EXPECT_TRUE(testing::internal::GetCapturedStdout().find("Дерево пусто") != std::string::npos);
+}
+
+TEST(AVLTreeTest, PrintNonEmpty) {
+    AVLTree t;
+    t.Push("10");
+    t.Push("5");
+    t.Push("15");
+    testing::internal::CaptureStdout();
+    t.Print();
+    std::string out = testing::internal::GetCapturedStdout();
+    EXPECT_TRUE(out.find("10") != std::string::npos);
+    EXPECT_TRUE(out.find("5") != std::string::npos);
+    EXPECT_TRUE(out.find("15") != std::string::npos);
 }

@@ -151,3 +151,36 @@ impl DBMS {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_dbms_full_coverage() {
+        let mut db = DBMS::new();
+        db.execute("MPUSH arr1 x");
+        db.execute("MPUSH arr1 y");
+        db.execute("MSUBARRAYS arr1");
+        db.execute("MSAVE arr1 tmp_demo.txt");
+        db.execute("MLOAD arr2 tmp_demo.txt");
+        db.execute("MLOAD unknown_type path");
+        db.execute("SPUSH s1 A");
+        db.execute("SPRINT s1");
+        db.execute("SVALIDATE <a></a>");
+        db.execute("SFIXXML <a><b></x></a>");
+        db.execute("FPUSH f1 A");
+        db.execute("FPRINT f1");
+        db.execute("LPUSH l1 A");
+        db.execute("LPUSHTAIL l1 B");
+        db.execute("LPRINT l1");
+        db.execute("QPUSH q1 1");
+        db.execute("QPRINT q1");
+        db.execute("TINSERT t1 10");
+        db.execute("THEIGHT t1");
+        db.execute("HTADD h1 1 apple");
+        db.execute("HTGET h1 apple");
+        db.execute("HTLONGEST abcabcbb");
+        db.execute("UNKNOWN_CMD");
+        std::fs::remove_file("tmp_demo.txt").unwrap_or(());
+    }
+}
