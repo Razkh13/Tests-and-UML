@@ -1,5 +1,6 @@
 use crate::container::Container;
 use std::any::Any;
+use std::io::{Read, Write};
 
 struct Node {
     data: String,
@@ -53,7 +54,6 @@ impl DoublyList {
     pub fn push_before(&mut self, target: &str, value: String) {
         if self.head.is_none() { println!("Список пуст"); return; }
         if self.head.as_ref().unwrap().data == target { self.push(value); return; }
-
         let mut cur = self.head.as_mut().unwrap();
         while let Some(next) = cur.next.as_mut() {
             if next.data == target {
@@ -171,27 +171,35 @@ impl DoublyList {
     }
 
     pub fn pop_value(&mut self, value: &str) -> Option<String> {
-        if self.head.is_none() { println!("Список пуст"); return None; }
-        if self.head.as_ref().unwrap().data == value { return self.pop(); }
-        let mut cur_ptr: *mut Node = &mut **self.head.as_mut().unwrap();
-        unsafe {
-            while (*cur_ptr).next.is_some() {
-                let next_ptr = (*cur_ptr).next.as_mut().unwrap().as_mut() as *mut Node;
-                if (*next_ptr).data == value {
-                    let nn = (*next_ptr).next.take();
-                    if let Some(ref x) = nn {
-                        let xp = x.as_ref() as *const Node as *mut Node;
-                        (*xp).prev = cur_ptr;
-                    } else {
-                        self.tail = cur_ptr;
-                    }
-                    (*cur_ptr).next = nn;
-                    self.size -= 1;
-                    let removed = Box::from_raw(next_ptr);
-                    return Some(removed.data);
+        if self.head.is_none() {
+            println!("Список пуст");
+            return None;
+        }
+        if self.head.as_ref().unwrap().data == value {
+            return self.pop();
+        }
+        let mut cur = self.head.as_mut().unwrap();
+        loop {
+            let is_target = match cur.next.as_ref() {
+                Some(next) => next.data == value,
+                None => false,
+            };
+            if is_target {
+                let mut removed = cur.next.take().unwrap();
+                cur.next = removed.next.take();
+                let cur_ptr = &mut **cur as *mut Node;
+                if let Some(ref mut new_next) = cur.next {
+                    new_next.prev = cur_ptr;
+                } else {
+                    self.tail = cur_ptr;
                 }
-                cur_ptr = next_ptr;
+                self.size -= 1;
+                return Some(removed.data);
             }
+            if cur.next.is_none() {
+                break;
+            }
+            cur = cur.next.as_mut().unwrap();
         }
         println!("Не найдено");
         None
@@ -258,6 +266,46 @@ impl DoublyList {
         for _ in 0..n { if let Some(line) = lines.next() { d.push_tail(line.to_string()); } }
         d
     }
+
+    pub fn save_binary(&self, path: &str) {
+        let mut file = std::fs::File::create(path).unwrap();
+        let items = self.get_all();
+        file.write_all(&(items.len() as u64).to_le_bytes()).unwrap();
+        for x in items {
+            file.write_all(&(x.len() as u64).to_le_bytes()).unwrap();
+            file.write_all(x.as_bytes()).unwrap();
+        }
+    }
+
+    pub fn load_binary(path: &str) -> Self {
+        let mut file = match std::fs::File::open(path) {
+            Ok(f) => f,
+            Err(_) => return DoublyList::new(),
+        };
+        let mut buffer = Vec::new();
+        if file.read_to_end(&mut buffer).is_err() || buffer.len() < 8 { return DoublyList::new(); }
+        
+        let mut offset = 0;
+        let mut n_bytes = [0u8; 8];
+        n_bytes.copy_from_slice(&buffer[offset..offset+8]);
+        let n = u64::from_le_bytes(n_bytes) as usize;
+        offset += 8;
+
+        let mut d = DoublyList::new();
+        for _ in 0..n {
+            if offset + 8 > buffer.len() { break; }
+            let mut len_bytes = [0u8; 8];
+            len_bytes.copy_from_slice(&buffer[offset..offset+8]);
+            let len = u64::from_le_bytes(len_bytes) as usize;
+            offset += 8;
+            
+            if offset + len > buffer.len() { break; }
+            let s = String::from_utf8_lossy(&buffer[offset..offset+len]).to_string();
+            offset += len;
+            d.push_tail(s);
+        }
+        d
+    }
 }
 
 impl Container for DoublyList {
@@ -283,35 +331,62 @@ mod tests {
     #[test]
     fn test_doubly_list_full() {
         let mut d = DoublyList::new();
+        
+        assert_eq!(d.pop(), None);
+        assert_eq!(d.pop_tail(), None);
+        assert_eq!(d.pop_before("none"), None);
+        assert_eq!(d.pop_after("none"), None);
         assert_eq!(d.pop_value("none"), None);
+
         d.push("A".to_string());
         d.push_tail("C".to_string());
         d.push_before("C", "B".to_string());
         d.push_after("A", "A2".to_string());
+        
         d.print();
         d.print_reverse();
         d.print_every_second();
+
+        let _ = d.pop_value("B");
+        let _ = d.pop_before("A");
+        let _ = d.pop_after("C");
+        let _ = d.pop_value("C");
+
         d.pop();
         d.pop_tail();
+
         d.save_text("tmp_dl.txt");
-        let _loaded = DoublyList::load_text("tmp_dl.txt");
+        let loaded = DoublyList::load_text("tmp_dl.txt");
+        
+        assert!(!loaded.find("A"));
+        assert!(!loaded.find("C"));
+        assert!(!loaded.find("B"));
+        
         std::fs::remove_file("tmp_dl.txt").unwrap();
     }
 
-        #[test]
-    fn test_pop_methods() {
+    #[test]
+    fn test_pop_value_edges() {
         let mut d = DoublyList::new();
-
         d.push_tail("A".to_string());
+        let _ = d.pop_value("A"); 
         d.push_tail("B".to_string());
         d.push_tail("C".to_string());
-
-        d.pop_before("B");
-        d.pop_after("B");
-
-        d.push_tail("D".to_string());
-        d.pop_before("D");
-        d.pop_after("D");
+        let _ = d.pop_value("C"); 
+        let _ = d.pop_value("none");
     }
-    
+
+    #[test]
+    fn test_binary_serialization() {
+        let mut d = DoublyList::new();
+        d.push_tail("A".to_string());
+        d.push_tail("B".to_string());
+        
+        d.save_binary("tmp_dl.bin");
+        let loaded = DoublyList::load_binary("tmp_dl.bin");
+        
+        assert!(loaded.find("A"));
+        assert!(loaded.find("B"));
+        std::fs::remove_file("tmp_dl.bin").unwrap();
+    }
 }

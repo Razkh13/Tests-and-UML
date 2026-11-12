@@ -1,5 +1,0 @@
-/home/zaharov/programming/Lab3.3/rust/target/release/build/rayon-core-7212063e2268db30/build_script_build-7212063e2268db30.d: /home/zaharov/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rayon-core-1.13.0/build.rs
-
-/home/zaharov/programming/Lab3.3/rust/target/release/build/rayon-core-7212063e2268db30/build_script_build-7212063e2268db30: /home/zaharov/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rayon-core-1.13.0/build.rs
-
-/home/zaharov/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rayon-core-1.13.0/build.rs:

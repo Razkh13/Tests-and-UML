@@ -175,4 +175,13 @@ mod tests {
         h2.remove("none");
         assert!(!h2.contains("apple"));
     }
+
+    #[test]
+    fn test_hash_table_container_trait() {
+        let h = HashTable::new(10007, 1);
+        let _any_ref = h.as_any();
+        
+        let mut h_mut = HashTable::new(10007, 1);
+        let _any_mut_ref = h_mut.as_any_mut();
+    }
 }
