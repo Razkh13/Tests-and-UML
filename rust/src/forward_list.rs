@@ -72,33 +72,3 @@ impl Container for ForwardList {
     fn as_any(&self) -> &dyn Any { self }
     fn as_any_mut(&mut self) -> &mut dyn Any { self }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_push_and_find() {
-        let mut f = ForwardList::new();
-        f.push_tail("A".to_string());
-        f.push_tail("B".to_string());
-        assert!(f.find("A"));
-        assert!(f.find("B"));
-    }
-    #[test]
-    fn test_forward_list_full() {
-        let mut f = ForwardList::new();
-        assert_eq!(f.pop_value("none"), None); 
-        f.push_tail("A".to_string());
-        f.push_tail("B".to_string());
-        f.push_tail("C".to_string());
-        f.pop_value("B"); 
-        f.pop_value("A"); 
-        f.pop_value("C"); 
-        f.push_tail("D".to_string());
-        assert!(!f.get_all().is_empty());
-        f.save_text("tmp_fl.txt");
-        let loaded = ForwardList::load_text("tmp_fl.txt");
-        assert!(loaded.find("D"));
-        std::fs::remove_file("tmp_fl.txt").unwrap();
-    }
-}

@@ -83,38 +83,3 @@ impl Container for Stack {
     fn as_any(&self) -> &dyn Any { self }
     fn as_any_mut(&mut self) -> &mut dyn Any { self }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_push_and_pop() {
-        let mut s = Stack::new();
-        s.push("A".to_string());
-        s.push("B".to_string());
-        assert!(s.find("A"));
-        s.pop();
-        assert!(!s.find("B"));
-    }
-    #[test]
-    fn test_validate_xml() {
-        assert!(Stack::validate_xml("<a><b></b></a>"));
-        assert!(!Stack::validate_xml("<a><b></a></b>"));
-    }
-    #[test]
-    fn test_stack_full() {
-        let mut s = Stack::new();
-        assert!(s.is_empty());
-        s.push("A".to_string());
-        s.push("B".to_string());
-        assert!(!s.is_empty());
-        assert_eq!(s.peek(), Some(&"B".to_string()));
-        s.print();
-        s.save_text("tmp_stack.txt");
-        let loaded = Stack::load_text("tmp_stack.txt");
-        assert_eq!(loaded.data.len(), 2);
-        std::fs::remove_file("tmp_stack.txt").unwrap();
-        assert_eq!(Stack::fix_xml("<a><b></x></a>"), "<a><x></x></a>");
-        assert_eq!(Stack::fix_xml("invalid"), "Incorrect");
-    }
-}

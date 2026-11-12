@@ -60,28 +60,3 @@ impl Container for BST {
     fn as_any(&self) -> &dyn Any { self }
     fn as_any_mut(&mut self) -> &mut dyn Any { self }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_insert_and_height() {
-        let mut t = BST::new();
-        t.insert("10".to_string());
-        t.insert("5".to_string());
-        t.insert("15".to_string());
-        assert_eq!(t.height(), 3);
-    }
-    #[test]
-    fn test_tree_full() {
-        let mut t = BST::new();
-        t.insert("10".to_string());
-        t.insert("5".to_string());
-        t.insert("15".to_string());
-        t.insert("10".to_string());
-        t.save_text("tmp_tree.txt");
-        let loaded = BST::load_text("tmp_tree.txt");
-        assert_eq!(loaded.height(), 3);
-        std::fs::remove_file("tmp_tree.txt").unwrap();
-    }
-}

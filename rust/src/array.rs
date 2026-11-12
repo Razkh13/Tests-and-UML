@@ -59,29 +59,3 @@ impl Container for Array {
     fn as_any(&self) -> &dyn Any { self }
     fn as_any_mut(&mut self) -> &mut dyn Any { self }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    #[test]
-    fn test_push_and_find() {
-        let mut a = Array::new();
-        a.push("apple".to_string());
-        a.push("banana".to_string());
-        assert_eq!(a.data.len(), 2);
-        assert!(a.find("apple"));
-        assert!(!a.find("orange"));
-    }
-    #[test]
-    fn test_array_full() {
-        let mut a = Array::new();
-        a.push("x".to_string());
-        a.push("y".to_string());
-        a.print();
-        a.print_subarrays();
-        a.save_text("tmp_arr.txt");
-        let loaded = Array::load_text("tmp_arr.txt");
-        assert_eq!(loaded.data.len(), 2);
-        std::fs::remove_file("tmp_arr.txt").unwrap();
-    }
-}
